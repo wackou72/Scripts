@@ -1,0 +1,54 @@
+#include <ButtonConstants.au3>
+#include <GUIConstantsEx.au3>
+#include <GUIListBox.au3>
+#include <StaticConstants.au3>
+#include <WindowsConstants.au3>
+#include <GuiListView.au3>
+#include <MsgBoxConstants.au3>
+#include <ListviewConstants.au3>
+;~ recupere les salles et torrent dispo
+Run("powershell.exe .\SCRIPTS\start.ps1")
+;~ installation du logo
+FileInstall("logo.jpg", @ScriptDir & "\logo.jpg")
+;~ on attend que l'extraction soit finis
+Sleep (5000)
+;~ definition de la GUI
+$Form = GUICreate("ENI TORRENT DEPLOY", 409, 359, 223, 143)
+$LOGO = GUICtrlCreatePic(".\logo.jpg", 16, 8, 100, 100)
+;~ BOUTTONS
+$LANCER = GUICtrlCreateButton("LANCER", 272, 216, 115, 65)
+$QUITTER = GUICtrlCreateButton("QUITTER", 152, 80, 75, 25)
+$PROPOS = GUICtrlCreateButton("A PROPOS", 152, 24, 75, 25)
+$TEXTE = GUICtrlCreateLabel("Sélectionner une salle puis un cours", 232, 56, 174, 17)
+GUICtrlSetBkColor(-1, 0xFF0000)
+;~ LISTES
+$salles = GUICtrlCreateList("", 12, 164, 100, 188)
+$cours = GUICtrlCreateList("", 156, 164, 100, 188)
+;~ LECTURE FICHIERS
+$sData = "|" & StringReplace(FileRead(@ScriptDir & ".\TEMP\salles.txt"), @CRLF, "|")
+$tData = "|" & StringReplace(FileRead(@ScriptDir & ".\TEMP\torrent.txt"), @CRLF, "|")
+;~ TEXTES
+$Label_salles = GUICtrlCreateLabel("Salles disponibles", 16, 144, 87, 17)
+$Label_cours = GUICtrlCreateLabel("Cours disponibles", 160, 144, 86, 17)
+
+;~ REMPLIS LES LISTES
+GUICtrlSetData($salles, $sData)
+GUICtrlSetData($cours, $tData)
+GUISetState(@SW_SHOW)
+
+
+While 1
+	$nMsg = GUIGetMsg()
+	Switch $nMsg
+		Case $GUI_EVENT_CLOSE, $QUITTER
+			Exit
+		Case $LANCER
+			$Ssalles = GUICtrlRead($salles)
+			$Scours = GUICtrlRead($cours)
+			run("powershell.exe "".\SCRIPTS\computers.ps1"" '"  & $Ssalles & "'") ;~on recupere les PC de la salle
+ 			Sleep (2000)
+			run("powershell.exe "".\SCRIPTS\deploiement.ps1"" '"  & $Scours & "'") ;~on commence le deploiement
+		 Case $PROPOS
+			MsgBox (0,"A propos","Créé par WACKOU (www.wackou.com)")
+	EndSwitch
+WEnd
